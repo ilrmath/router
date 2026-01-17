@@ -210,8 +210,8 @@ const ROUTE_DB = {
     "net4": [{ gw:"Direct", if:"E0", m:1, note:"直接" }],
     "net5": [
         { gw:"r5", if:"E1", m:2, note:"ルータ5(最適)" },
-        { gw:"r2", if:"E1", m:3, note:"ルータ2(遠回り)" }, // ★追加: ネット1を2回通るルート
-        { gw:"r4", if:"E1", m:3, note:"ルータ4(遠回り)" }  // ★追加: ネット1を2回通るルート
+        { gw:"r2", if:"E1", m:3, note:"ルータ2(遠回り)" }, 
+        { gw:"r4", if:"E1", m:3, note:"ルータ4(遠回り)" }
     ]
   },
   "r2": {
@@ -373,11 +373,11 @@ function renderTable() {
     tdIF.style.textAlign = "center";
     tdIF.innerText = curRoute.if;
     
-    // 宛先列
+    // 宛先列 (★修正: NET〜表記をネット〜に統一)
     const tdDest = document.createElement('td');
     tdDest.style.fontWeight = "bold";
     tdDest.style.color = "#a0aec0";
-    tdDest.innerText = d.toUpperCase();
+    tdDest.innerText = d.replace('net', 'ネット');
 
     // ゲートウェイ列
     const tdGw = document.createElement('td');
@@ -450,7 +450,8 @@ function updateGoalOptions() {
       neighbors.forEach(gw => {
         const opt = document.createElement('option');
         opt.value = `${d}|${gw}`;
-        opt.text = `${d.toUpperCase()} (経由: ${gw.toUpperCase()})`;
+        // ★修正: プルダウンの表示を「NET〜」から「ネット〜」に統一
+        opt.text = `${d.replace('net', 'ネット')} (経由: ${gw.toUpperCase()})`;
         dstSelect.appendChild(opt);
       });
     }
@@ -512,7 +513,9 @@ async function startSim() {
   await wait(50);
   pkt.style.transition = 'left 0.6s linear, top 0.6s linear';
 
-  toast(`🚀 パケット送信: ${path.map(n=>n.toUpperCase()).join(' → ')}`);
+  // ★修正: トースト表示も「ネット〜」に統一（親切な表示のため）
+  const displayPath = path.map(n => n.startsWith('net') ? n.replace('net', 'ネット') : n.toUpperCase()).join(' → ');
+  toast(`🚀 パケット送信: ${displayPath}`);
 
   for (let i = 0; i < path.length - 1; i++) {
     const from = path[i];
