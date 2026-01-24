@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IPルーティング実習ドリル (v6 経路制御実験版)</title>
+  <title>IPルーティング実習ドリル (v6.1 表記修正版)</title>
   <style>
     :root {
       --bg: #1a202c;
@@ -43,17 +43,24 @@
       width: 90px; height: 45px; border-radius: 25px;
       background: rgba(66, 153, 225, 0.15); border: 2px dashed #63b3ed; color: #90cdf4;
     }
+    
+    /* --- ルータのスタイル --- */
     .router {
-      width: 80px; height: 45px; border-radius: 6px;
+      width: 60px; height: 60px; border-radius: 8px;
       background: #edf2f7; color: #1a202c; border: 2px solid #cbd5e0;
       box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      flex-direction: column; 
+      line-height: 1.1;
+      gap: 2px;
     }
     .router:hover { transform: translate(-50%, -50%) scale(1.05); }
     .router.selected {
       background: #fff; border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.6);
     }
-    
+    .rt-label { font-size: 10px; color: #4a5568; font-weight: normal; }
+    .rt-id { font-size: 20px; font-weight: 800; color: #1a202c; }
+
     /* パケット */
     .packet {
       position: absolute; width: 20px; height: 20px; background: #f6e05e;
@@ -124,11 +131,21 @@
     <div class="node net" id="net5" style="left:70%; top:20%">ネット5</div>
     <div class="node net" id="net3" style="left:65%; top:85%">ネット3</div>
 
-    <div class="node router" id="r1" style="left:30%; top:50%" onclick="selectRouterUI('r1')">ルータ1</div>
-    <div class="node router" id="r2" style="left:70%; top:50%" onclick="selectRouterUI('r2')">ルータ2</div>
-    <div class="node router" id="r5" style="left:50%; top:20%" onclick="selectRouterUI('r5')">ルータ5</div>
-    <div class="node router" id="r4" style="left:45%; top:85%" onclick="selectRouterUI('r4')">ルータ4</div>
-    <div class="node router" id="r3" style="left:90%; top:85%" onclick="selectRouterUI('r3')">ルータ3</div>
+    <div class="node router" id="r1" style="left:30%; top:50%" onclick="selectRouterUI('r1')">
+        <span class="rt-label">ルータ</span><span class="rt-id">1</span>
+    </div>
+    <div class="node router" id="r2" style="left:70%; top:50%" onclick="selectRouterUI('r2')">
+        <span class="rt-label">ルータ</span><span class="rt-id">2</span>
+    </div>
+    <div class="node router" id="r5" style="left:50%; top:20%" onclick="selectRouterUI('r5')">
+        <span class="rt-label">ルータ</span><span class="rt-id">5</span>
+    </div>
+    <div class="node router" id="r4" style="left:45%; top:85%" onclick="selectRouterUI('r4')">
+        <span class="rt-label">ルータ</span><span class="rt-id">4</span>
+    </div>
+    <div class="node router" id="r3" style="left:90%; top:85%" onclick="selectRouterUI('r3')">
+        <span class="rt-label">ルータ</span><span class="rt-id">3</span>
+    </div>
     
     <div class="packet" id="packet"></div>
   </div>
@@ -285,7 +302,6 @@ let currentConfig = {};
 function initConfig() {
   ['r1','r2','r3','r4','r5'].forEach(r => {
     currentConfig[r] = {};
-    // すべて0(初期値)にする
     ['net1','net2','net3','net4','net5'].forEach(n => currentConfig[r][n] = 0);
   });
 }
@@ -293,6 +309,13 @@ initConfig();
 
 let isRunning = false;
 let showingRouter = 'r2'; 
+
+/* ★日本語化ヘルパー関数★ */
+function toJp(id) {
+  if (!id) return "";
+  return id.replace('net', 'ネット').replace('r', 'ルータ').toUpperCase();
+}
+// ※ 'ルータ'に変換しつつ、念のため残った英字はUpperCaseにする(Directなどはそのまま)
 
 window.onload = () => {
   drawTopology();
@@ -303,8 +326,8 @@ window.onload = () => {
 /* === リセット機能 === */
 function resetAll() {
   if(isRunning) return;
-  initConfig(); // 全設定を0に戻す
-  selectRouterUI(showingRouter); // テーブル再描画
+  initConfig(); 
+  selectRouterUI(showingRouter); 
   toast("🔄 設定をすべて初期状態に戻しました", false);
 }
 
@@ -346,7 +369,7 @@ function selectRouterUI(rid) {
   showingRouter = rid;
   document.querySelectorAll('.router').forEach(e => e.classList.remove('selected'));
   document.getElementById(rid).classList.add('selected');
-  document.getElementById('lbl-table-name').innerText = `📋 ${rid.toUpperCase()} の設定`;
+  document.getElementById('lbl-table-name').innerText = `📋 ${toJp(rid)} の設定`;
   renderTable();
 }
 
@@ -373,11 +396,11 @@ function renderTable() {
     tdIF.style.textAlign = "center";
     tdIF.innerText = curRoute.if;
     
-    // 宛先列 (★修正: NET〜表記をネット〜に統一)
+    // 宛先列 (★修正: 日本語表記に)
     const tdDest = document.createElement('td');
     tdDest.style.fontWeight = "bold";
     tdDest.style.color = "#a0aec0";
-    tdDest.innerText = d.replace('net', 'ネット');
+    tdDest.innerText = toJp(d); 
 
     // ゲートウェイ列
     const tdGw = document.createElement('td');
@@ -391,7 +414,8 @@ function renderTable() {
       opts.forEach((opt, idx) => {
         const el = document.createElement('option');
         el.value = idx;
-        el.text = `${opt.note} (GW: ${opt.gw.toUpperCase()})`;
+        // (★修正: 日本語表記に)
+        el.text = `${opt.note} (GW: ${toJp(opt.gw)})`;
         if(idx === curIdx) el.selected = true;
         sel.appendChild(el);
       });
@@ -450,8 +474,8 @@ function updateGoalOptions() {
       neighbors.forEach(gw => {
         const opt = document.createElement('option');
         opt.value = `${d}|${gw}`;
-        // ★修正: プルダウンの表示を「NET〜」から「ネット〜」に統一
-        opt.text = `${d.replace('net', 'ネット')} (経由: ${gw.toUpperCase()})`;
+        // (★修正: 日本語表記 "ネット○ (経由: ルータ○)")
+        opt.text = `${toJp(d)} (経由: ${toJp(gw)})`;
         dstSelect.appendChild(opt);
       });
     }
@@ -513,9 +537,8 @@ async function startSim() {
   await wait(50);
   pkt.style.transition = 'left 0.6s linear, top 0.6s linear';
 
-  // ★修正: トースト表示も「ネット〜」に統一（親切な表示のため）
-  const displayPath = path.map(n => n.startsWith('net') ? n.replace('net', 'ネット') : n.toUpperCase()).join(' → ');
-  toast(`🚀 パケット送信: ${displayPath}`);
+  // (★修正: トースト通知も日本語表記に)
+  toast(`🚀 パケット送信: ${path.map(n=>toJp(n)).join(' → ')}`);
 
   for (let i = 0; i < path.length - 1; i++) {
     const from = path[i];
